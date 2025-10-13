@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Order History — Ice Cream Store</title>
+
+  <!-- Material Icons (original) -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind (kept for layout/responsiveness per your choice) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* ---------- Theme Variables (your Material orange theme) ---------- */
+    :root {
+      --primary-color: #ff7043;
+      --on-primary: #fff;
+      --surface: #ffffff;
+      --on-surface: #333;
+      --background: #f7f7f7;
+      --shadow: rgba(0, 0, 0, 0.1);
+      --accent-600: #ff7043;
+      --accent-200: #ffd8cc;
+    }
+
+    [data-theme="dark"] {
+      --primary-color: #ff8a50;
+      --on-primary: #fff;
+      --surface: #2b2b2b;
+      --on-surface: #f2f2f2;
+      --background: #1e1e1e;
+      --shadow: rgba(0, 0, 0, 0.6);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; transition: background-color 0.25s, color 0.25s; }
+    html, body { height: 100%; }
+    body {
+      font-family: "Roboto", sans-serif;
+      background-color: var(--background);
+      color: var(--on-surface);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ---------- AppBar ---------- */
+    header#appBar {
+      background-color: var(--primary-color);
+      color: var(--on-primary);
+      padding: 14px 16px;
+      font-size: 1.1rem;
+      font-weight: 500;
+      text-align: center;
+      box-shadow: 0 2px 6px var(--shadow);
+      display: block;
+      position: relative;
+    }
+
+    /* ---------- Main Content ---------- */
+    main#content {
+      flex: 1;
+      padding: 18px;
+      overflow-y: auto;
+      font-size: 1rem;
+    }
+
+    /* ---------- Bottom Navigation ---------- */
+    nav.bottom-nav {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background-color: var(--surface);
+      border-top: 1px solid #ddd;
+      padding: 8px 0;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      z-index: 50;
+    }
+
+    nav.bottom-nav button {
+      background: none;
+      border: none;
+      color: gray;
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      gap: 2px;
+    }
+
+    nav.bottom-nav button.active {
+      color: var(--primary-color);
+      font-weight: 600;
+    }
+
+    nav.bottom-nav button i, nav.bottom-nav button .material-symbols-outlined {
+      font-size: 22px;
+    }
+
+    /* ---------- Order-specific styles ---------- */
+    .order-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 6px var(--shadow);
+    }
+
+    .muted { color: #777; }
+    .center { text-align: center; }
+
+    /* ensure main area doesn't go behind bottom nav */
+    .content-padding-bottom { padding-bottom: 88px; }
+  </style>
+</head>
+
+<body>
+
+  <header id="appBar">Order History 📜</header>
+
+  <main id="content" class="content-padding-bottom">
+    <div id="orders-container"></div>
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <button onclick="window.location.href='cart_page.html'" id="nav-cart">
+      <span class="material-symbols-outlined">shopping_cart</span>
+      Cart
+    </button>
+    <button onclick="window.location.href='order_page.html'" id="nav-orders">
+      <span class="material-symbols-outlined">receipt_long</span>
+      Orders
+    </button>
+    <button onclick="window.location.href='favorites_page.html'" id="nav-favorites">
+      <span class="material-symbols-outlined">favorite</span>
+      Favorites
+    </button>
+    <button onclick="window.location.href='userhomepage.html'" id="nav-settings">
+      <span class="material-symbols-outlined">settings</span>
+      Settings
+    </button>
+  </nav>
+
+  <script>
+    // ---------- Shared State & Persistence ---------- */
+    const content = document.getElementById('content');
+    const ordersContainer = document.getElementById('orders-container');
+    const navButtons = document.querySelectorAll('nav.bottom-nav button');
+    const bodyEl = document.body;
+
+    // initial settings (persisted)
+    let settings = JSON.parse(localStorage.getItem('settings')) || {
+      isDarkMode: false,
+      notificationsEnabled: true,
+      language: 'en'
+    };
+
+    // orders from 'ordersBox'
+    let orders = JSON.parse(localStorage.getItem('ordersBox')) || [];
+
+    // ---------- Helpers ---------- */
+    function renderOrders() {
+      if (!orders || orders.length === 0) {
+        ordersContainer.innerHTML = `<div style="background:var(--surface);padding:28px;border-radius:12px;" class="center"><div style="font-weight:700;font-size:1.05rem;">No orders yet</div><div class="muted" style="margin-top:8px;">Place an order from the cart to see it here.</div></div>`;
+        return;
+      }
+
+      const html = orders.map(ord => {
+        return `
+          <div class="order-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-weight:700;">Order ${ord.id}</div>
+              <div class="muted">${new Date(ord.date).toLocaleString()}</div>
+            </div>
+            <div style="margin-top:8px;">
+              ${ord.items.map(it => `<div style="display:flex;justify-content:space-between;"><div>${it.flavor} x ${it.qty}</div><div>$${(it.price * it.qty).toFixed(2)}</div></div>`).join('')}
+            </div>
+            <div style="margin-top:8px;font-weight:800;">Total: $${ord.total.toFixed(2)}</div>
+          </div>
+        `;
+      }).join('');
+
+      ordersContainer.innerHTML = html;
+    }
+
+    function updateTheme() {
+      if (settings.isDarkMode) bodyEl.setAttribute('data-theme', 'dark');
+      else bodyEl.removeAttribute('data-theme');
+    }
+
+    // ---------- Initialization ---------- */
+    function initApp() {
+      updateTheme();
+      renderOrders();
+      // Set active nav
+      navButtons.forEach(b => b.classList.remove('active'));
+      document.getElementById('nav-orders').classList.add('active');
+    }
+
+    // Start
+    initApp();
+  </script>
+</body>
+</html>

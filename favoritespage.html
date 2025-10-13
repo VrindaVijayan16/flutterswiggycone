@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favorites Page</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .empty-favorites {
+            text-align: center;
+            padding: 50px 20px;
+        }
+        .empty-favorites-icon {
+            font-size: 80px;
+            color: #ccc;
+        }
+        .empty-favorites h2 {
+            color: #666;
+            margin: 20px 0;
+        }
+        .empty-favorites p {
+            color: #999;
+            margin-bottom: 30px;
+        }
+        .btn {
+            background-color: #ff5722;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        .btn:hover {
+            background-color: #e64a19;
+        }
+        .favorite-item {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+        }
+        .favorite-item img {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin-right: 16px;
+        }
+        .favorite-item-details {
+            flex: 1;
+        }
+        .favorite-item-name {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .favorite-item-price {
+            color: #666;
+        }
+        .remove-btn {
+            background: #f0f0f0;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .remove-btn:hover {
+            background: #e0e0e0;
+        }
+        .continue-shopping {
+            color: #ff5722;
+            text-decoration: none;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .continue-shopping:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="favorites-content">
+            <!-- Favorites items will be populated here -->
+        </div>
+    </div>
+
+    <script>
+        // Load products from localStorage
+        let products = JSON.parse(localStorage.getItem('productsBox')) || [];
+
+        function saveProducts() {
+            localStorage.setItem('productsBox', JSON.stringify(products));
+        }
+
+        function toggleFavorite(productId) {
+            const productIndex = products.findIndex(p => p.id === productId);
+            if (productIndex > -1) {
+                products[productIndex].isFavorite = !products[productIndex].isFavorite;
+                saveProducts();
+                renderFavorites();
+            }
+        }
+
+        function renderFavorites() {
+            const favoritesContent = document.getElementById('favorites-content');
+            const favoriteProducts = products.filter(p => p.isFavorite);
+
+            if (favoriteProducts.length === 0) {
+                favoritesContent.innerHTML = `
+                    <div class="empty-favorites">
+                        <div class="empty-favorites-icon">❤️</div>
+                        <h2>Your favorites list is empty</h2>
+                        <p>Looks like you haven't added any favorites yet.</p>
+                        <button class="btn" onclick="continueShopping()">Continue Shopping</button>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+
+            // Favorites items
+            favoriteProducts.forEach((product) => {
+                html += `
+                    <div class="favorite-item">
+                        <img src="${product.image}" alt="${product.flavor}" onerror="this.src='https://placehold.co/400x400/F06292/fff?text=${product.flavor.replace(/\s/g, '+')}';">
+                        <div class="favorite-item-details">
+                            <div class="favorite-item-name">${product.flavor}</div>
+                            <div class="favorite-item-price">$${product.price.toFixed(2)}</div>
+                        </div>
+                        <button class="remove-btn" onclick="toggleFavorite('${product.id}')">×</button>
+                    </div>
+                `;
+            });
+
+            // Continue shopping link
+            html += `
+                <div style="text-align: center; margin-top: 20px;">
+                    <span class="continue-shopping" onclick="continueShopping()">← Continue Shopping</span>
+                </div>
+            `;
+
+            favoritesContent.innerHTML = html;
+        }
+
+        function continueShopping() {
+            // Navigate back to homepage.html
+            window.location.href = 'homepage.html';
+        }
+
+        // Initial render
+        renderFavorites();
+    </script>
+</body>
+</html>

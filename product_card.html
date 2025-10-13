@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Card</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .product-card {
+            width: 200px;
+            height: 300px;
+            background-color: #f5f5f5;
+            border-radius: 16px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .product-image {
+            flex: 6;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        .favorite-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .favorite-icon {
+            font-size: 16px;
+            color: #e91e63;
+        }
+        .product-info {
+            flex: 5;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .product-name {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .product-price {
+            font-size: 14px;
+            color: #1976d2;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="product-card" onclick="goToProductDetail()">
+        <div class="product-image" style="background-image: url('https://via.placeholder.com/200x150');">
+            <div class="favorite-btn" onclick="toggleFavorite(event)">
+                <span class="favorite-icon" id="favorite-icon">♡</span>
+            </div>
+        </div>
+        <div class="product-info">
+            <div class="product-name">Vanilla Ice Cream</div>
+            <div class="product-price">₹50</div>
+        </div>
+    </div>
+
+    <script>
+        let isFavorite = false;
+
+        function toggleFavorite(event) {
+            event.stopPropagation(); // Prevent card click
+            isFavorite = !isFavorite;
+            const icon = document.getElementById('favorite-icon');
+            icon.textContent = isFavorite ? '♥' : '♡';
+            // Here you can add logic to save favorite state, e.g., localStorage or API call
+        }
+
+        function goToProductDetail() {
+            // Navigate to product detail page, e.g., window.location.href = 'product_detail.html';
+            alert('Navigate to product detail');
+        }
+    </script>
+</body>
+</html>

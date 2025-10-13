@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ice Cream Store Homepage</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Lucide Icons for Material-like icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles to mimic Flutter Material look */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+        }
+
+        .scroll-container::-webkit-scrollbar {
+            display: none;
+            /* Hide scrollbar for Chrome, Safari and Opera */
+        }
+
+        .scroll-container {
+            -ms-overflow-style: none;
+            /* IE and Edge */
+            scrollbar-width: none;
+            /* Firefox */
+        }
+
+        .carousel-track {
+            display: flex;
+            transition: transform 0.3s ease-in-out;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="app" class="min-h-screen">
+        <!-- Header / SearchBar equivalent -->
+        <header class="sticky top-0 bg-white z-10 shadow-md">
+            <div class="p-4 flex items-center gap-3">
+                <div class="flex-grow">
+                    <div class="relative">
+                        <input type="text" id="search-input"
+                            class="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors"
+                            placeholder="Search for flavors or cones..." oninput="handleSearch(this.value)">
+                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                            <i data-lucide="search" class="w-5 h-5"></i>
+                        </span>
+                    </div>
+                </div>
+        <!-- Cart Icon Placeholder (Cart not in original Dart code, but good practice) -->
+                <button class="p-3 rounded-xl bg-pink-100 text-pink-600 hover:bg-pink-200 transition-colors">
+                    <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+                </button>
+                <!-- Link to User Homepage -->
+                <a href="userhomepage.html" class="p-3 rounded-xl bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors">
+                    <i data-lucide="user" class="w-6 h-6"></i>
+                </a>
+            </div>
+        </header>
+
+
+        <main class="pb-16">
+            <!-- 1. Categories (SizedBox + ListView.separated) -->
+            <div id="categories-container" class="py-4 overflow-x-auto scroll-container">
+                <div id="categories-list" class="flex px-4 gap-4">
+                    <!-- Categories will be injected here by JavaScript -->
+                </div>
+            </div>
+
+            <!-- 2. Promotions (CarouselSlider) -->
+            <div id="promotions-section" class="py-4">
+                <div class="px-4 mb-4">
+                    <h2 class="text-xl font-bold text-gray-800">Special Offers</h2>
+                </div>
+                <div class="relative w-full overflow-hidden">
+                    <div id="carousel-wrapper" class="overflow-hidden">
+                        <div id="carousel-track" class="carousel-track">
+                            <!-- Promotions will be injected here by JavaScript -->
+                        </div>
+                    </div>
+                    <div id="carousel-dots" class="flex justify-center mt-3 space-x-2">
+                        <!-- Dots will be injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Trending Now Header -->
+            <div class="px-4 py-2">
+                <h2 class="text-xl font-bold text-gray-800">Trending Now</h2>
+            </div>
+
+            <!-- 4. Product Grid (SliverGrid) -->
+            <div id="product-grid-container" class="p-4">
+                <!-- Product grid will be injected here by JavaScript -->
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- 1. DATA MODELS & MOCK DATA (Dart equivalent) ---
+
+        // Helper function to render Lucide Icons
+        const renderIcons = () => {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        };
+
+        const state = {
+            selectedFlavor: 'All',
+            currentCarouselIndex: 0,
+            searchQuery: '',
+            products: [],
+            userName: "Cone Lover",
+            cart: [],
+        };
+
+        // This data comes directly from your homepage.dart file.
+        const categoriesData = [
+            { name: 'All', icon: 'ice-cream' },
+            { name: 'Vanilla', icon: 'milk-shake' },
+            { name: 'Chocolate', icon: 'cake' },
+            { name: 'Strawberry', icon: 'flower' },
+            { name: 'Mint', icon: 'leaf' },
+            { name: 'Mango', icon: 'sun' },
+            { name: 'Blueberry', icon: 'droplet' },
+            { name: 'Cookies & Cream', icon: 'cookie' },
+            { name: 'Pistachio', icon: 'nut' },
+            { name: 'Coconut', icon: 'palm-tree' },
+            { name: 'Lemon', icon: 'lemon' },
+            { name: 'Cookie Dough', icon: 'cookie' },
+            { name: 'Birthday Cake', icon: 'cake' },
+            { name: 'Moose Tracks', icon: 'footprints' },
+            { name: 'Cotton Candy', icon: 'cloud' },
+            // Total 15 flavors + 'All' = 16 categories
+        ];
+
+        const promotionsData = [
+            {
+                image: "https://cdn.dribbble.com/userupload/18761618/file/original-1a75b6dc31ce1a743c28ef9613deef0e.jpg?resize=1024x819&vertical=center",
+                title: 'Summer Special',
+                subtitle: 'Get 20% off on all cones!',
+            },
+            {
+                image: "https://img.freepik.com/premium-psd/delicious-icecream-social-media-web-banner-design_440834-1419.jpg",
+                title: 'New Flavors',
+                subtitle: 'Try our exotic mango delight!',
+            },
+            {
+                image: "https://tse3.mm.bing.net/th/id/OIP.zsONxi1j35-W9i_DI1kDlQHaEK?pid=Api&P=0&h=180",
+                title: 'Family Pack',
+                subtitle: 'Perfect for gatherings',
+            },
+        ];
+
+        // Products data with prices converted from cents (299) to dollars (2.99)
+        const sampleProducts = [
+            { id: '1', flavor: 'Vanilla', price: 2.99, image: 'https://tse2.mm.bing.net/th/id/OIP.m81IWuQqz4HBSX9L44Jx8QHaLH?pid=Api&P=0&h=180', description: 'Craving something classic and creamy? 😋With Cotton Candy, you can order your favorite vanilla ice cream anytime, anywhere — fresh, smooth, and delivered cold to your doorstep!Whether it’s a cozy night in, a family dinner, or a quick dessert craving, Cotton Candy makes it easy to enjoy vanilla bliss in just a few taps.🚀 Why You’ll Love Cotton Candy:🍦 Pure Vanilla Delight: Rich, creamy, and made from real ingredients for that perfect flavor.', isFavorite: false },
+            { id: '2', flavor: 'Chocolate', price: 3.49, image: 'https://tse3.mm.bing.net/th/id/OIP._AXCyNN_TpsRCzl3UxayJAHaHa?pid=Api&P=0&h=180', description: 'Craving something chocolatey? 🍫With Cotton Candy, satisfy your sweet tooth with the smoothest, richest chocolate ice cream, delivered right to your doorstep — cold, creamy, and ready to melt your heart.From classic dark chocolate to fudge-filled swirls, Cotton Candy brings you the best local and premium ice cream brands in one app. Whether it’s dessert time, a celebration, or a late-night craving — we’ve got your chocolate fix covered!🚀 Why You’ll Love Cotton Candy:🍫 Pure Chocolate Bliss: Indulge in creamy, rich flavors made from premium cocoa.', isFavorite: false },
+            { id: '3', flavor: 'Strawberry', price: 3.29, image: 'https://tse1.mm.bing.net/th/id/OIP.wWk0y3UMyiDmIuTr9evbXQHaL0?pid=Api&P=0&h=180', description: 'Fresh. Fruity. Irresistible. — the scoop that makes you smile! 🍓🍦Love that fruity, fresh sweetness? 🍓With Cotton Candy, you can order your favorite strawberry ice cream anytime — smooth, creamy, and bursting with real berry flavor!Whether it’s a hot day, a cozy movie night, or a dessert craving, Cotton Candy delivers happiness frozen — straight to your door.🍓 Real Strawberry Flavor: Made with fresh, juicy strawberries for that perfect sweet-tangy balance.', isFavorite: false },
+            { id: '4', flavor: 'Mint', price: 3.19, image: 'https://tse4.mm.bing.net/th/id/OIP.2hcMnMQghrNYXi3JmTDs7AHaLH?pid=Api&P=0&h=180', description: 'Cool, refreshing flavor that freshens your day! 💚🍦', isFavorite: false },
+            { id: '5', flavor: 'Rocky Road', price: 3.49, image: 'https://placehold.co/400x400/804000/ffffff?text=Rocky+Road', description: 'A classic mix of chocolate, marshmallows, and nuts.', isFavorite: false },
+            { id: '6', flavor: 'Mango', price: 3.59, image: 'https://static.vecteezy.com/system/resources/previews/049/159/996/non_2x/delicious-mango-ice-cream-cone-with-fresh-mango-pieces-and-transparent-background-png.png', description: 'Fresh, fruity, and oh-so-creamy — the taste of summer, anytime! ☀️🥭🍦.', isFavorite: false },
+            { id: '7', flavor: 'Blueberry', price: 3.59, image: 'https://static.vecteezy.com/system/resources/previews/049/159/992/large_2x/refreshing-blueberry-ice-cream-cone-packed-with-blueberry-bits-png.png', description: 'A cool, fruity escape — sweet, creamy, and irresistibly blue! 🫐🍦✨.', isFavorite: false },
+            { id: '8', flavor: 'Cookies & Cream', price: 3.59, image: 'https://tse2.mm.bing.net/th/id/OIP.3kh8p2GxLKElnHat_1DSugAAAA?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3', description: 'Rich, creamy, and oh-so-dreamy — the cookie lover’s perfect scoop! 🍪🍦✨.', isFavorite: false },
+            { id: '9', flavor: 'Pistachio', price: 3.59, image: 'https://tse1.mm.bing.net/th/id/OIP.FyA1sKYtGswNORGD4Ryd9AAAAA?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3', description: 'Sophisticated, nutty, and oh-so-creamy — a timeless classic in every cone! 🌰🍦✨.', isFavorite: false },
+            { id: '10', flavor: 'Coconut', price: 3.59, image: 'https://tse4.mm.bing.net/th/id/OIP.4uWO9Bh_ifufpqHE6tETIgHaLH?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3', description: 'Tropical. Creamy. Blissful. — the island flavor you’ll crave! 🌴🍦🥥.', isFavorite: false },
+            { id: '11', flavor: 'Lemon', price: 3.59, image: 'https://tse4.mm.bing.net/th/id/OIP.4uWO9Bh_ifufpqHE6tETIgHaLH?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3', description: 'Zesty. Creamy. Refreshing. — the taste that wakes up your senses! ☀️🍋🍦.', isFavorite: false },
+            { id: '12', flavor: 'Cookie Dough', price: 3.59, image: 'https://tse4.mm.bing.net/th/id/OIP.4uWO9Bh_ifufpqHE6tETIgHaLH?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3', description: 'Sweet. Chunky. Irresistible. — the dough-licious flavor you can’t resist! 🍪🍦✨.', isFavorite: false },
+            { id: '13', flavor: 'Birthday Cake', price: 3.59, image: 'https://tse4.mm.bing.net/th/id/OIP.W4tWc-3_BNuGm0As3tFqkQHaHa?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3', description: 'Fun. Sweet. Festive. — the scoop that makes every moment a party! 🎉🍦✨.', isFavorite: false },
+            { id: '14', flavor: 'Moose Tracks', price: 3.59, image: 'https://tse2.mm.bing.net/th/id/OIP.MnYH4LHlvG-xatAsM3YzHwAAAA?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3', description: 'Chocolatey. Chunky. Wildly Delicious. — the scoop that leads the pack! 🍫🍦✨.', isFavorite: false },
+            { id: '15', flavor: 'Cotton Candy', price: 3.59, image: 'https://i.pinimg.com/originals/8d/14/01/8d1401339f55306702f555f5e5192b6b.png', description: 'With Cotton Candy, get your favorite ice creams, sundaes, and cotton candy cones delivered straight to your doorstep — fresh, chilled, and ready to melt your heart!From classic vanilla to colorful cotton candy swirls, we bring you the best local ice cream brands and parlors in one place.Whether it’s a late-night craving, a party, or just a mood fix — we’ve got you covered!🍧 Fast Delivery: Get your ice cream delivered in minutes — always cold, never melted!🍧 Fast Delivery: Get your ice cream delivered in minutes — always cold, never melted!', isFavorite: false },
+        ];
+
+
+        // --- 2. LOCAL STORAGE / HIVE EQUIVALENT (Persistence) ---
+
+        /**
+         * Loads products from localStorage (equivalent to Hive box.values)
+         * If empty, populates with sample data.
+         */
+        const loadProducts = () => {
+            const storedProducts = localStorage.getItem('productsBox');
+            if (storedProducts) {
+                state.products = JSON.parse(storedProducts);
+            } else {
+                state.products = sampleProducts;
+                saveProducts();
+            }
+        }
+
+        const saveProducts = () => {
+            localStorage.setItem('productsBox', JSON.stringify(state.products));
+        }
+
+        const toggleFavorite = (productId) => {
+            const productIndex = state.products.findIndex(p => p.id === productId);
+            if (productIndex > -1) {
+                state.products[productIndex].isFavorite = !state.products[productIndex].isFavorite;
+                saveProducts();
+                renderProductGrid();
+            }
+        }
+
+        const loadCart = () => {
+            const storedCart = localStorage.getItem('cart');
+            if (storedCart) {
+                state.cart = JSON.parse(storedCart);
+            } else {
+                state.cart = [];
+            }
+        }
+
+        const saveCart = () => {
+            localStorage.setItem('cart', JSON.stringify(state.cart));
+        }
+
+        const addToCart = (productId) => {
+            const product = state.products.find(p => p.id === productId);
+            if (product) {
+                const existingItem = state.cart.find(item => item.id === productId);
+                if (existingItem) {
+                    existingItem.quantity += 1;
+                } else {
+                    state.cart.push({
+                        id: product.id,
+                        flavor: product.flavor,
+                        price: product.price,
+                        image: product.image,
+                        quantity: 1
+                    });
+                }
+                saveCart();
+                // Navigate to cart page
+                window.location.href = 'cart_page.html';
+            }
+        }
+
+        const buyNow = (productId) => {
+            // Navigate to order page (assuming order_page.html exists or create placeholder)
+            window.location.href = 'order_page.html';
+        }
+
+        // --- 3. STATE MANAGEMENT & RENDER LOOP (setState equivalent) ---
+
+        const setState = (newState) => {
+            Object.assign(state, newState);
+            renderApp();
+        };
+
+        const handleCategorySelect = (flavor) => {
+            setState({ selectedFlavor: flavor });
+        };
+
+        const handleSearch = (query) => {
+            setState({ searchQuery: query });
+        };
+
+        // --- 4. UI BUILDERS (Widget equivalents) ---
+
+        const buildCategories = () => {
+            const listContainer = document.getElementById('categories-list');
+            listContainer.innerHTML = ''; // Clear previous content
+
+            categoriesData.forEach(category => {
+                const isSelected = category.name === state.selectedFlavor;
+                const categoryHtml = `
+                    <div class="flex flex-col items-center cursor-pointer" onclick="handleCategorySelect('${category.name}')">
+                        <div class="w-16 h-16 flex items-center justify-center rounded-xl transition-colors
+                            ${isSelected ? 'bg-pink-200 border-2 border-pink-600' : 'bg-gray-100'}">
+                            <i data-lucide="${category.icon}" class="w-7 h-7 
+                                ${isSelected ? 'text-pink-600' : 'text-gray-600'}"></i>
+                        </div>
+                        <span class="mt-1 text-xs font-medium text-center 
+                            ${isSelected ? 'text-pink-600 font-bold' : 'text-gray-600'}">
+                            ${category.name}
+                        </span>
+                    </div>
+                `;
+                listContainer.insertAdjacentHTML('beforeend', categoryHtml);
+            });
+            renderIcons(); // Re-render Lucide icons after injecting HTML
+        };
+
+
+        const buildPromotions = () => {
+            const track = document.getElementById('carousel-track');
+            const dotsContainer = document.getElementById('carousel-dots');
+            track.innerHTML = '';
+            dotsContainer.innerHTML = '';
+
+            const carouselWrapper = document.getElementById('carousel-wrapper');
+            const slideWidth = carouselWrapper.clientWidth * 0.9; // viewportFraction: 0.9
+
+            promotionsData.forEach((promo, index) => {
+                // Carousel Item
+                const itemHtml = `
+                    <div class="flex-shrink-0 w-[90vw] md:w-[70vw] lg:w-[40vw] h-[25vh] rounded-2xl overflow-hidden shadow-lg mx-[5vw] md:mx-[15vw] lg:mx-[30vw] relative" style="transform: translateX(-${state.currentCarouselIndex * 100}%)">
+                        <img src="${promo.image}" onerror="this.src='https://placehold.co/600x400/FFC0CB/000?text=Offer';" alt="${promo.title}" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent p-4 flex flex-col justify-end">
+                            <h3 class="text-white text-xl font-bold">${promo.title}</h3>
+                            <p class="text-white text-sm">${promo.subtitle}</p>
+                        </div>
+                    </div>
+                `;
+                track.insertAdjacentHTML('beforeend', itemHtml);
+
+                // Dot Indicator
+                const isCurrent = index === state.currentCarouselIndex;
+                const dotHtml = `
+                    <div class="w-2 h-2 rounded-full transition-colors 
+                        ${isCurrent ? 'bg-pink-600' : 'bg-gray-300'}"></div>
+                `;
+                dotsContainer.insertAdjacentHTML('beforeend', dotHtml);
+            });
+
+            // Adjust the track position
+            const offset = (state.currentCarouselIndex * 90) + (5 * (state.currentCarouselIndex * 2)); // 90% width + margins
+            track.style.transform = `translateX(-${state.currentCarouselIndex * slideWidth}px)`;
+
+            // AutoPlay Logic
+            clearInterval(window.carouselInterval);
+            window.carouselInterval = setInterval(() => {
+                let nextIndex = (state.currentCarouselIndex + 1) % promotionsData.length;
+                setState({ currentCarouselIndex: nextIndex });
+            }, 4000); // 4 seconds autoPlay delay
+        };
+
+
+        const renderProductCard = (product) => {
+            const isFavorite = product.isFavorite;
+            return `
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col hover:shadow-xl transition-shadow">
+                    <!-- Image -->
+                    <div class="relative w-full h-40 cursor-pointer" onclick="viewProduct('${product.id}')">
+                        <img src="${product.image}"
+                            onerror="this.src='https://placehold.co/400x400/F06292/fff?text=${product.flavor.replace(/\s/g, '+')}';"
+                            alt="${product.flavor}"
+                            class="w-full h-full object-cover">
+                        <button class="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 backdrop-blur-sm shadow-md text-pink-500"
+                            onclick="event.stopPropagation(); toggleFavorite('${product.id}')">
+                            <i data-lucide="${isFavorite ? 'heart-fill' : 'heart'}" class="w-5 h-5 ${isFavorite ? 'fill-pink-500 text-pink-500' : 'text-gray-400'}"></i>
+                        </button>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="p-3 flex flex-col flex-grow">
+                        <h3 class="text-md font-bold text-gray-800 truncate">${product.flavor}</h3>
+                        <p class="text-sm text-gray-500 line-clamp-2 mt-1">${product.description.substring(0, 50)}...</p>
+
+                        <div class="mt-auto pt-3 flex items-center justify-between">
+                            <span class="text-lg font-extrabold text-pink-600">$${product.price.toFixed(2)}</span>
+                            <div class="flex gap-2">
+                                <button class="bg-pink-500 text-white px-2 py-1 text-xs rounded-full font-semibold hover:bg-pink-600 transition-colors shadow-md" onclick="addToCart('${product.id}')">
+                                    ADD TO CART
+                                </button>
+                                <button class="bg-green-500 text-white px-2 py-1 text-xs rounded-full font-semibold hover:bg-green-600 transition-colors shadow-md" onclick="buyNow('${product.id}')">
+                                    BUY NOW
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        const viewProduct = (productId) => {
+            const p = state.products.find(x => x.id === productId);
+            if (!p) return;
+            // Navigate to product detail page with product data
+            const productData = encodeURIComponent(JSON.stringify(p));
+            window.location.href = `product_detail_page.html?product=${productData}`;
+        };
+
+        const renderProductGrid = () => {
+            const gridContainer = document.getElementById('product-grid-container');
+            let filteredProducts = state.products;
+
+            // 1. Filter by Flavor
+            if (state.selectedFlavor !== 'All') {
+                filteredProducts = filteredProducts.filter(p => p.flavor === state.selectedFlavor);
+            }
+
+            // 2. Filter by Search Query
+            if (state.searchQuery.trim().length > 0) {
+                const query = state.searchQuery.toLowerCase();
+                filteredProducts = filteredProducts.filter(p => 
+                    p.flavor.toLowerCase().includes(query) || 
+                    p.description.toLowerCase().includes(query)
+                );
+            }
+
+            if (filteredProducts.length === 0) {
+                gridContainer.innerHTML = `
+                    <div class="text-center py-20 bg-white rounded-xl shadow-inner m-4">
+                        <i data-lucide="ice-cream" class="w-16 h-16 text-gray-400 mx-auto"></i>
+                        <h3 class="text-xl font-semibold text-gray-600 mt-4">No cones available 🍧</h3>
+                        <p class="text-gray-500">Try adjusting your filter or search term.</p>
+                    </div>
+                `;
+            } else {
+                // Tailwind responsive grid columns (equivalent to SliverGrid responsiveness)
+                // sm: 2 columns, md: 3 columns, lg: 4 columns
+                gridContainer.className = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4';
+                
+                const productCardsHtml = filteredProducts.map(renderProductCard).join('');
+                gridContainer.innerHTML = productCardsHtml;
+            }
+
+            renderIcons(); // Re-render icons for new cards
+        };
+
+
+        // --- 5. MAIN RENDER FUNCTION ---
+
+        const renderApp = () => {
+            // 1. Build Categories
+            buildCategories();
+
+            // 2. Build Promotions
+            buildPromotions();
+
+            // 3. Build Product Grid (Handles all filtering)
+            renderProductGrid();
+
+            // Render all icons again to catch everything
+            renderIcons();
+        }
+
+        // --- 6. INITIALIZATION (initState equivalent) ---
+
+        window.onload = function () {
+            // Load persistent data or initialize with samples
+            loadProducts();
+            loadCart();
+            // Start the main rendering loop
+            renderApp();
+        };
+
+    </script>
+</body>
+
+</html>

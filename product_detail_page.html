@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product Detail</title>
+
+  <!-- ✅ Google Material Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+
+  <style>
+    /* ---------- Theme Variables ---------- */
+    :root {
+      --primary-color: #ff7043;
+      --on-primary: #fff;
+      --surface: #ffffff;
+      --on-surface: #333;
+      --background: #f7f7f7;
+      --shadow: rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="dark"] {
+      --primary-color: #ff8a50;
+      --on-primary: #fff;
+      --surface: #2b2b2b;
+      --on-surface: #f2f2f2;
+      --background: #1e1e1e;
+      --shadow: rgba(0, 0, 0, 0.6);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.25s, color 0.25s;
+    }
+
+    body {
+      font-family: "Roboto", "Segoe UI", sans-serif;
+      background-color: var(--background);
+      color: var(--on-surface);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ---------- AppBar ---------- */
+    header {
+      background-color: var(--primary-color);
+      color: var(--on-primary);
+      padding: 16px;
+      font-size: 1.2rem;
+      font-weight: 500;
+      text-align: center;
+      box-shadow: 0 2px 6px var(--shadow);
+      position: relative;
+    }
+
+    .app-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .app-bar-title {
+      flex: 1;
+      text-align: center;
+    }
+
+    .app-bar-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-button {
+      background: none;
+      border: none;
+      color: var(--on-primary);
+      font-size: 24px;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      transition: background-color 0.2s;
+    }
+
+    .action-button:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* ---------- Theme Toggle ---------- */
+    .theme-toggle {
+      position: absolute;
+      top: 10px;
+      right: 16px;
+      background: var(--surface);
+      border: none;
+      border-radius: 18px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: var(--on-surface);
+      box-shadow: 0 2px 6px var(--shadow);
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .theme-toggle:hover {
+      background-color: var(--primary-color);
+      color: var(--on-primary);
+    }
+
+    /* ---------- Main Body ---------- */
+    main {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .product-image {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      border-radius: 16px;
+      box-shadow: 0 4px 8px var(--shadow);
+    }
+
+    .product-info {
+      margin-top: 16px;
+    }
+
+    .product-flavor {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: var(--on-surface);
+    }
+
+    .product-price {
+      font-size: 1.5rem;
+      color: var(--primary-color);
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .product-description {
+      font-size: 1rem;
+      line-height: 1.5;
+      color: var(--on-surface);
+    }
+
+    /* ---------- Snackbar ---------- */
+    .snackbar {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--surface);
+      color: var(--on-surface);
+      padding: 12px 16px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px var(--shadow);
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 1000;
+    }
+
+    .snackbar.show {
+      opacity: 1;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ---------- AppBar ---------- -->
+  <header>
+    <div class="app-bar">
+      <div></div>
+      <div class="app-bar-title" id="product-flavor-title">Product Detail</div>
+      <div class="app-bar-actions">
+        <button class="action-button" id="add-to-cart-btn" title="Add to Cart">
+          <span class="material-symbols-outlined">shopping_cart</span>
+        </button>
+        <button class="action-button" id="buy-now-btn" title="Buy Now">
+          <span class="material-symbols-outlined">shopping_bag</span>
+        </button>
+        <button class="action-button" id="favorite-btn" title="Favorite">
+          <span class="material-symbols-outlined" id="favorite-icon">favorite_border</span>
+        </button>
+      </div>
+    </div>
+    <button id="theme-toggle" class="theme-toggle">🌙 Dark</button>
+  </header>
+
+  <!-- ---------- Main Content ---------- -->
+  <main>
+    <img id="product-image" src="" alt="Product Image" class="product-image">
+    <div class="product-info">
+      <div class="product-flavor" id="product-flavor">Loading...</div>
+      <div class="product-price" id="product-price">₹0</div>
+      <div class="product-description" id="product-description">Loading...</div>
+    </div>
+  </main>
+
+  <!-- ---------- Snackbar ---------- -->
+  <div class="snackbar" id="snackbar"></div>
+
+  <!-- ---------- Script Logic ---------- -->
+  <script>
+    const themeToggle = document.getElementById('theme-toggle');
+    const body = document.body;
+    const productFlavorTitle = document.getElementById('product-flavor-title');
+    const productImage = document.getElementById('product-image');
+    const productFlavor = document.getElementById('product-flavor');
+    const productPrice = document.getElementById('product-price');
+    const productDescription = document.getElementById('product-description');
+    const addToCartBtn = document.getElementById('add-to-cart-btn');
+    const buyNowBtn = document.getElementById('buy-now-btn');
+    const favoriteBtn = document.getElementById('favorite-btn');
+    const favoriteIcon = document.getElementById('favorite-icon');
+    const snackbar = document.getElementById('snackbar');
+
+    // Theme Toggle
+    let darkMode = false;
+    themeToggle.addEventListener('click', () => {
+      darkMode = !darkMode;
+      if (darkMode) {
+        body.setAttribute('data-theme', 'dark');
+        themeToggle.textContent = '☀️ Light';
+      } else {
+        body.removeAttribute('data-theme');
+        themeToggle.textContent = '🌙 Dark';
+      }
+    });
+
+    // Load product data from URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const productData = urlParams.get('product');
+    let product = null;
+    if (productData) {
+      product = JSON.parse(decodeURIComponent(productData));
+    } else {
+      // Fallback to sample data if no product data in URL
+      product = {
+        id: '1',
+        flavor: 'Vanilla',
+        price: 2.99,
+        image: 'https://tse2.mm.bing.net/th/id/OIP.m81IWuQqz4HBSX9L44Jx8QHaLH?pid=Api&P=0&h=180',
+        description: 'Craving something classic and creamy? 😋With Cotton Candy, you can order your favorite vanilla ice cream anytime, anywhere — fresh, smooth, and delivered cold to your doorstep!',
+        isFavorite: false,
+      };
+    }
+
+    // Favorites (in real app, load from localStorage or API)
+    let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+
+    function updateFavoriteIcon() {
+      if (favorites.includes(product.id)) {
+        favoriteIcon.textContent = 'favorite';
+        favoriteIcon.style.color = '#e91e63';
+      } else {
+        favoriteIcon.textContent = 'favorite_border';
+        favoriteIcon.style.color = '';
+      }
+    }
+
+    function toggleFavorite() {
+      if (favorites.includes(product.id)) {
+        favorites = favorites.filter(id => id !== product.id);
+      } else {
+        favorites.push(product.id);
+      }
+      localStorage.setItem('favorites', JSON.stringify(favorites));
+      updateFavoriteIcon();
+      showSnackbar(`${product.flavor} ${favorites.includes(product.id) ? 'added to' : 'removed from'} favorites ❤️`);
+    }
+
+    function addToCart() {
+      // Add to cart using localStorage key 'cartBox' to match cart_page.html
+      let cart = JSON.parse(localStorage.getItem('cartBox')) || [];
+      const existingItem = cart.find(item => item.id === product.id);
+      if (existingItem) {
+        existingItem.qty += 1;
+      } else {
+        cart.push({
+          id: product.id,
+          flavor: product.flavor,
+          price: product.price,
+          qty: 1,
+          image: product.image
+        });
+      }
+      localStorage.setItem('cartBox', JSON.stringify(cart));
+      showSnackbar(`${product.flavor} added to cart 🛒`);
+    }
+
+    function buyNow() {
+      // Create a new order with the product
+      const newOrder = {
+        id: 'ORD' + Date.now(),
+        items: [{
+          id: product.id,
+          flavor: product.flavor,
+          price: product.price,
+          qty: 1,
+          image: product.image
+        }],
+        total: product.price,
+        date: new Date().toISOString()
+      };
+
+      // Load existing orders, add new one, save
+      let orders = JSON.parse(localStorage.getItem('ordersBox')) || [];
+      orders.unshift(newOrder);
+      localStorage.setItem('ordersBox', JSON.stringify(orders));
+
+      showSnackbar(`${product.flavor} ordered successfully!`);
+      // Navigate to order page
+      setTimeout(() => {
+        window.location.href = 'order_page.html';
+      }, 1000);
+    }
+
+    function showSnackbar(message) {
+      snackbar.textContent = message;
+      snackbar.classList.add('show');
+      setTimeout(() => {
+        snackbar.classList.remove('show');
+      }, 3000);
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      productFlavorTitle.textContent = product.flavor;
+      productImage.src = product.image;
+      productFlavor.textContent = product.flavor;
+      productPrice.textContent = `$${product.price.toFixed(2)}`;
+      productDescription.textContent = product.description;
+      updateFavoriteIcon();
+
+      favoriteBtn.addEventListener('click', toggleFavorite);
+      addToCartBtn.addEventListener('click', addToCart);
+      buyNowBtn.addEventListener('click', buyNow);
+    });
+  </script>
+</body>
+</html>
